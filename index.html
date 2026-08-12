@@ -59,6 +59,20 @@
     .rank-brand { font-size: 11px; padding: 2px 8px; border-radius: 10px; color: #fff; white-space: nowrap; text-align: left; justify-self: start; }
     .rank-value { font-weight: 600; white-space: nowrap; text-align: right; }
     .empty-state, .loading { text-align: center; color: #8A8578; font-size: 13px; padding: 20px 0; }
+    .brand-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-left: 4px solid #ccc;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .brand-card-name { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+    .brand-stats-row { display: grid; gap: 10px; margin-bottom: 12px; }
+    .brand-stats-row.row3 { grid-template-columns: repeat(3, 1fr); }
+    .brand-stats-row.row2 { grid-template-columns: repeat(2, 1fr); margin-bottom: 0; }
+    .brand-stat-label { font-size: 11px; color: #8A8578; margin-bottom: 3px; }
+    .brand-stat-value { font-size: 16px; font-weight: 700; color: #2C3E50; }
     .chart-wrap { display: flex; gap: 6px; }
     .chart-yaxis { position: relative; width: 30px; flex-shrink: 0; height: 130px; }
     .y-tick { position: absolute; right: 4px; transform: translateY(50%); font-size: 9px; color: #8A8578; white-space: nowrap; }
@@ -224,6 +238,26 @@
       return '<div class="section"><div class="section-title">' + title + '</div>' +
         '<div class="pie-wrap"><div class="pie" style="background:' + gradient + '"></div><div class="legend">' + legendHtml + '</div></div></div>';
     }
+    function renderBrandCards(items) {
+      let html = '';
+      items.forEach((it, i) => {
+        const color = colorFor(it.brand, i);
+        html += '<div class="brand-card" style="border-left-color:' + color + '">' +
+          '<div class="brand-card-name" style="color:' + color + '">' + it.name + '</div>' +
+          '<div class="brand-stats-row row3">' +
+            '<div><div class="brand-stat-label">ยอดขาย (บาท)</div><div class="brand-stat-value">' + fmt(it.value) + '</div></div>' +
+            '<div><div class="brand-stat-label">จำนวนบิล</div><div class="brand-stat-value">' + fmt(it.bills) + '</div></div>' +
+            '<div><div class="brand-stat-label">จำนวนลูกค้า</div><div class="brand-stat-value">' + fmt(it.customers) + '</div></div>' +
+          '</div>' +
+          '<div class="brand-stats-row row2">' +
+            '<div><div class="brand-stat-label">เฉลี่ย/บิล</div><div class="brand-stat-value">' + fmt(it.perBill) + '</div></div>' +
+            '<div><div class="brand-stat-label">เฉลี่ย/คน</div><div class="brand-stat-value">' + fmt(it.perHead) + '</div></div>' +
+          '</div>' +
+        '</div>';
+      });
+      return html;
+    }
+
     function renderBarList(title, items, field, isCurrency, useBrandColors) {
       const max = Math.max(...items.map(it => Math.abs(it[field])), 1);
       let rows = '';
@@ -263,12 +297,8 @@
         '<div class="kpi-card"><div class="kpi-value">฿' + fmt(data.totalSales) + '</div><div class="kpi-label">ยอดขายรวม</div></div>' +
         '</div>';
 
-      html += '<div class="group-title">ตามแบรนด์</div>';
-      html += renderPie('ยอดขาย', data.byBrand, true);
-      html += renderBarList('จำนวนบิล', data.byBrand, 'bills', false, true);
-      html += renderBarList('จำนวนลูกค้า', data.byBrand, 'customers', false, true);
-      html += renderBarList('ยอดขาย/บิล', data.byBrand, 'perBill', true, true);
-      html += renderBarList('ยอดขาย/หัว', data.byBrand, 'perHead', true, true);
+      html += '<div class="group-title">สรุปยอดแยกตามแบรนด์</div>';
+      html += renderBrandCards(data.byBrand);
 
       html += '<div class="group-title">ตามสาขา</div>';
       const displayByBranch = data.byBranch.map(it => ({ ...it, name: branchDisplayName(it.name) }));
