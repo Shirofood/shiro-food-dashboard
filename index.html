@@ -73,6 +73,16 @@
     .brand-stats-row.row2 { grid-template-columns: repeat(2, 1fr); margin-bottom: 0; }
     .brand-stat-label { font-size: 11px; color: #8A8578; margin-bottom: 3px; }
     .brand-stat-value { font-size: 16px; font-weight: 700; color: #2C3E50; }
+    .branch-rank-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F0EDE6; }
+    .branch-rank-row:last-child { border-bottom: none; }
+    .branch-rank-label { width: 92px; flex-shrink: 0; }
+    .branch-rank-code { font-size: 16px; font-weight: 700; color: #2C3E50; }
+    .branch-rank-name { font-size: 11px; color: #8A8578; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .branch-rank-bar-track { flex: 1; height: 14px; background: #F0EDE6; border-radius: 8px; overflow: hidden; }
+    .branch-rank-bar-fill { height: 100%; border-radius: 8px; }
+    .branch-rank-values { text-align: right; flex-shrink: 0; width: 84px; }
+    .branch-rank-value { font-size: 16px; font-weight: 700; color: #2C3E50; }
+    .branch-rank-sub { font-size: 11px; color: #8A8578; }
     .chart-wrap { display: flex; gap: 6px; }
     .chart-yaxis { position: relative; width: 30px; flex-shrink: 0; height: 130px; }
     .y-tick { position: absolute; right: 4px; transform: translateY(50%); font-size: 9px; color: #8A8578; white-space: nowrap; }
@@ -238,6 +248,22 @@
       return '<div class="section"><div class="section-title">' + title + '</div>' +
         '<div class="pie-wrap"><div class="pie" style="background:' + gradient + '"></div><div class="legend">' + legendHtml + '</div></div></div>';
     }
+    function renderBranchRanking(items) {
+      if (!items.length) return '<div class="section"><div class="empty-state">ยังไม่มีข้อมูลในช่วงนี้</div></div>';
+      const max = Math.max(...items.map(it => it.value), 1);
+      let rows = '';
+      items.forEach((it, i) => {
+        const color = colorFor(it.brand, i);
+        const code = branchDisplayName(it.name);
+        rows += '<div class="branch-rank-row">' +
+          '<div class="branch-rank-label"><div class="branch-rank-code">' + code + '</div><div class="branch-rank-name">' + it.name + '</div></div>' +
+          '<div class="branch-rank-bar-track"><div class="branch-rank-bar-fill" style="width:' + (it.value / max * 100) + '%; background:' + color + '"></div></div>' +
+          '<div class="branch-rank-values"><div class="branch-rank-value">' + fmt(it.value) + '</div><div class="branch-rank-sub">' + fmt(it.perHead) + '/คน</div></div>' +
+          '</div>';
+      });
+      return '<div class="section">' + rows + '</div>';
+    }
+
     function renderBrandCards(items) {
       let html = '';
       items.forEach((it, i) => {
@@ -300,13 +326,8 @@
       html += '<div class="group-title">สรุปยอดแยกตามแบรนด์</div>';
       html += renderBrandCards(data.byBrand);
 
-      html += '<div class="group-title">ตามสาขา</div>';
-      const displayByBranch = data.byBranch.map(it => ({ ...it, name: branchDisplayName(it.name) }));
-      html += renderPie('ยอดขาย', displayByBranch, true);
-      html += renderBarList('จำนวนบิล', displayByBranch, 'bills', false, true);
-      html += renderBarList('จำนวนลูกค้า', displayByBranch, 'customers', false, true);
-      html += renderBarList('ยอดขาย/บิล', displayByBranch, 'perBill', true, true);
-      html += renderBarList('ยอดขาย/หัว', displayByBranch, 'perHead', true, true);
+      html += '<div class="group-title">แยกตามสาขา</div>';
+      html += renderBranchRanking(data.byBranch);
 
       html += '<div class="group-title">รายละเอียดสินค้า</div>';
       html += renderCategoryRanking('ยอดขายตามหมวดสินค้า Top 10', data.byCategory);
